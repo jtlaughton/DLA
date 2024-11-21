@@ -1,4 +1,3 @@
-#include <iostream>
 #include "../headers/renderer.h"
 
 int main() {
