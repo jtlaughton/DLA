@@ -1,17 +1,25 @@
 #pragma once
 
+#include <random>
 #include <string>
 #include <vector>
 #include <glad/glad.h>
 
 class DLATexture {
 public:
-    const unsigned int WIDTH = 20;
-    const unsigned int HEIGHT = 20;
+    const unsigned int WIDTH = 400;
+    const unsigned int HEIGHT = 400;
     DLATexture();
     std::string GetByteStream();
-    void RunIteration();
+    bool RunIteration();
 private:
-    const unsigned int iterations = 20;
+    unsigned int currentIteration = 0;
+    unsigned int _randomMove(unsigned int& x, unsigned int& y);
+    bool _nearbyAssigned(unsigned int x, unsigned int y);
+    const unsigned int maxIterations = 5000;
     std::vector<bool> points;
+    std::mt19937 gen;
+    std::uniform_int_distribution<unsigned> distribX;
+    std::uniform_int_distribution<unsigned> distribY;
+    std::uniform_int_distribution<unsigned> distribDir;
 };

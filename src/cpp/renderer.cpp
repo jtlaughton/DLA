@@ -10,6 +10,7 @@ Renderer::Renderer() {
     VBO = 0;
     VAO = 0;
     EBO = 0;
+    texture1 = 0;
     shader = nullptr;
 }
 
@@ -101,10 +102,23 @@ void Renderer::Update(){
     glfwPollEvents();
 }
 
-void Renderer::Draw() const {
+void Renderer::Draw() {
     //render commands
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    // update texture
+    if (!iterationsFinished) {
+        iterationsFinished = !generator.RunIteration();
+
+        // read texture data
+        const std::string dataStr = generator.GetByteStream();
+        const GLchar* data = dataStr.c_str();
+
+        // set texture data
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, generator.WIDTH, generator.HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
 
     //bind textures
     glActiveTexture(GL_TEXTURE0);
@@ -117,7 +131,7 @@ void Renderer::Draw() const {
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
-void Renderer::End() {
+void Renderer::End() const {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);

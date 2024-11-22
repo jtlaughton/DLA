@@ -27,12 +27,13 @@ public:
     [[nodiscard]] int Init();
     [[nodiscard]] bool Running() const;
     void Update();
-    void End();
+    void End() const;
 private:
     DLATexture generator;
     GLFWwindow* window;
     bool running = false;
-    void Draw() const;
+    bool iterationsFinished = false;
+    void Draw();
     GLuint VBO;
     GLuint VAO;
     GLuint EBO;
