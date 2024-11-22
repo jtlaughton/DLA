@@ -3,9 +3,15 @@ project(DLA)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(DLA src/cpp/main.cpp glad.c
+add_executable(DLA
+        src/cpp/main.cpp
+        glad.c
         src/headers/renderer.h
-        src/cpp/renderer.cpp)
+        src/cpp/renderer.cpp
+        src/headers/Shader.h
+        src/cpp/Shader.cpp
+        src/cpp/dlatexture.cpp
+        src/headers/dlatexture.h)
 
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     option(GIT_SUBMODULE "Check submodules during build" ON)

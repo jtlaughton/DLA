@@ -1,9 +1,12 @@
 #pragma once
 
+#include "../headers/Shader.h"
+#include "../headers/dlatexture.h"
+
 #include <fstream>
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <cstring>
 
 inline void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -15,26 +18,10 @@ inline void processInput(GLFWwindow* window) {
      }
 }
 
-inline std::string LoadShaderAsString(const std::string& filename) {
-    std::string result;
-
-    std::string line;
-    std::ifstream file(filename.c_str());
-
-    if (file.is_open()) {
-        while (std::getline(file, line)) {
-            result += line + "\n";
-        }
-        file.close();
-    }
-
-    return result;
-}
-
 class Renderer {
 public:
-    const int WINDOW_HEIGHT = 600;
-    const int WINDOW_WIDTH = 800;
+    const int WINDOW_HEIGHT = 1024;
+    const int WINDOW_WIDTH = 1024;
 
     Renderer();
     [[nodiscard]] int Init();
@@ -42,20 +29,23 @@ public:
     void Update();
     void End();
 private:
+    DLATexture generator;
     GLFWwindow* window;
     bool running = false;
-    void Draw();
+    void Draw() const;
     GLuint VBO;
     GLuint VAO;
     GLuint EBO;
-    GLuint shaderProgram;
+    GLuint texture1;
+    Shader* shader;
 };
 
 const GLfloat vertices[] = {
-    0.5f,  0.5f, 0.0f,  // top right
-    0.5f, -0.5f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f   // top left
+    // Verts                //color             //tex coords
+    1.0f,  1.0f, 0.0f,      1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+    1.0f, -1.0f, 0.0f,      0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+    -1.0f, -1.0f, 0.0f,     0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+    -1.0f,  1.0f, 0.0f,     0.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left
 };
 const GLuint indices[] = {
     0, 1, 3,
