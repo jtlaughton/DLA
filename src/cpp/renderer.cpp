@@ -124,8 +124,10 @@ void Renderer::Draw() {
     else if (!scalingApplied){
         scalingApplied = true;
 
-        generator.BiLinearInterpolationBy2();
-        generator.Blur();
+        for (int i = 0; i < 3; i++) {
+            generator.BiLinearInterpolationBy2();
+            generator.Blur();
+        }
 
         // read texture data
         const std::string dataStr = generator.GetByteStream();

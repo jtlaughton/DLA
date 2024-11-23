@@ -19,18 +19,26 @@ struct ConnectedPoint {
         indexConnection = connection;
     }
 
-    void IncreaseConnectedHeight(std::vector<ConnectedPoint>& connectedPoints, float& heightAccumulator) {
+    void TryIncreaseHeight(std::vector<ConnectedPoint>& connectedPoints, float& heightAccumulator) {
         if (indexConnection == -1) {
             return;
         }
 
-        connectedPoints[indexConnection].height +=  1.0f - (1.0f / (1.0f + height));
+        float neighborHeight = connectedPoints[indexConnection].height;
+
+        float newHeight = height + (1.0f - (1.0f / (1.0f + height)));
+
+        if (newHeight <= neighborHeight) {
+            return;
+        }
+
+        connectedPoints[indexConnection].height = newHeight;
 
         if (connectedPoints[indexConnection].height >= heightAccumulator) {
             heightAccumulator = connectedPoints[indexConnection].height;
         }
 
-        connectedPoints[indexConnection].IncreaseConnectedHeight(connectedPoints, heightAccumulator);
+        connectedPoints[indexConnection].TryIncreaseHeight(connectedPoints, heightAccumulator);
     }
 };
 
@@ -49,7 +57,7 @@ private:
     unsigned int currentIteration = 0;
     unsigned int _randomMove(unsigned int& x, unsigned int& y);
     int _nearbyAssigned(int x, int y);
-    const unsigned int maxIterations = 1000;
+    const unsigned int maxIterations = 4000;
     std::vector<ConnectedPoint> points;
     std::mt19937 gen;
     std::uniform_int_distribution<unsigned> distribX;

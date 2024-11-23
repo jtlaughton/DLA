@@ -142,7 +142,7 @@ bool DLATexture::RunIteration() {
     }
 
     points[randx + randy * width].Place(currentAssigned);
-    points[randx + randy * width].IncreaseConnectedHeight(points, maxHeight);
+    points[randx + randy * width].TryIncreaseHeight(points, maxHeight);
 
     return true;
 }
