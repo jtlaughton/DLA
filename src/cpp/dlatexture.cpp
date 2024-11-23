@@ -227,3 +227,57 @@ void DLATexture::BiLinearInterpolationBy2() {
     height = newHeight;
 }
 
+void DLATexture::Blur() {
+    std::vector<ConnectedPoint> newPoints(width * height, ConnectedPoint());
+
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            int staticWidth = static_cast<int>(width);
+
+            int position = x + y * staticWidth;
+            int upPosition = x + (y - 1) * staticWidth;
+            int downPosition = x + (y + 1) * staticWidth;
+            int leftPosition = (x - 1) + y * staticWidth;
+            int rightPosition = (x + 1) + y * staticWidth;
+
+            float upSample = 0.0f;
+            float downSample = 0.0f;
+            float leftSample = 0.0f;
+            float rightSample = 0.0f;
+            float sample = points[position].height * CENTER_SAMPLE;
+
+            bool placed = points[position].placed;
+            bool leftPlaced = false;
+            bool rightPlaced = false;
+            bool upPlaced = false;
+            bool downPlaced = false;
+
+            if (y != 0) {
+                upPlaced = points[upPosition].placed;
+                upSample = points[upPosition].height * UP_SAMPLE;
+            }
+
+            if (y != height-1) {
+                downPlaced = points[downPosition].placed;
+                downSample = points[downPosition].height * DOWN_SAMPLE;
+            }
+
+            if (x != 0) {
+                leftPlaced = points[leftPosition].placed;
+                leftSample = points[leftPosition].height * LEFT_SAMPLE;
+            }
+
+            if (x != width-1) {
+                rightPlaced = points[rightPosition].placed;
+                rightSample = points[rightPosition].height * RIGHT_SAMPLE;
+            }
+
+            newPoints[position].placed = placed || leftPlaced || rightPlaced || upPlaced || downPlaced;
+            newPoints[position].height = sample + upSample + downSample + leftSample + rightSample;
+        }
+    }
+
+    points = newPoints;
+}
+
+

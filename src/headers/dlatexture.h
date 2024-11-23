@@ -43,6 +43,7 @@ public:
     bool RunIteration();
     void Reset();
     void BiLinearInterpolationBy2();
+    void Blur();
 private:
     float maxHeight = 1.0f;
     unsigned int currentIteration = 0;
@@ -55,3 +56,9 @@ private:
     std::uniform_int_distribution<unsigned> distribY;
     std::uniform_int_distribution<unsigned> distribDir;
 };
+
+const float CENTER_SAMPLE = 1.0f / 3.0f;
+const float LEFT_SAMPLE = 1.0f / 6.0f;
+const float DOWN_SAMPLE = 1.0f / 6.0f;
+const float RIGHT_SAMPLE = 1.0f / 6.0f;
+const float UP_SAMPLE = 1.0f / 6.0f;
