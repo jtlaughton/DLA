@@ -31,11 +31,12 @@ public:
     void End() const;
 private:
     int currentIteration = 0;
-    const int iterations = 100;
+    const int iterations = 10;
     DLATexture generator;
     GLFWwindow* window;
     bool running = false;
     bool iterationsFinished = false;
+    bool scalingApplied = false;
     bool printed = false;
     void Draw();
     GLuint VBO;

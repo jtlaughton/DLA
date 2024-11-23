@@ -77,7 +77,7 @@ int Renderer::Init(){
     const GLchar* data = dataStr.c_str();
 
     // set texture data
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, generator.WIDTH, generator.HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, generator.width, generator.height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     shader->use();
@@ -118,32 +118,45 @@ void Renderer::Draw() {
         const GLchar* data = dataStr.c_str();
 
         // set texture data
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, generator.WIDTH, generator.HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, generator.width, generator.height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
-    else if (currentIteration != iterations) {
-        currentIteration++;
-        iterationsFinished = false;
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-        timeStamps.push_back(duration);
+    else if (!scalingApplied){
+        scalingApplied = true;
 
-        generator.Reset();
+        generator.BiLinearInterpolationBy2();
 
-        start = std::chrono::high_resolution_clock::now();
+        // read texture data
+        const std::string dataStr = generator.GetByteStream();
+        const GLchar* data = dataStr.c_str();
+
+        // set texture data
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, generator.width, generator.height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
     }
-    else if (!printed) {
-        printed = true;
-
-        int sum = 0;
-        for (auto t: timeStamps) {
-            sum += t.count();
-        }
-
-        const double average = static_cast<double>(sum) / timeStamps.size();
-
-        std::cout << "Average after " << iterations << " iterations: " << average << std::endl;
-    }
+    // else if (currentIteration != iterations - 1) {
+    //     currentIteration++;
+    //     iterationsFinished = false;
+    //     auto stop = std::chrono::high_resolution_clock::now();
+    //     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    //     timeStamps.push_back(duration);
+    //
+    //     generator.Reset();
+    //
+    //     start = std::chrono::high_resolution_clock::now();
+    // }
+    // else if (!printed) {
+    //     printed = true;
+    //
+    //     int sum = 0;
+    //     for (auto t: timeStamps) {
+    //         sum += t.count();
+    //     }
+    //
+    //     const double average = static_cast<double>(sum) / timeStamps.size();
+    //
+    //     std::cout << "Average after " << iterations << " iterations: " << average << std::endl;
+    // }
 
     //bind textures
     glActiveTexture(GL_TEXTURE0);
