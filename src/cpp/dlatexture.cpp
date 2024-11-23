@@ -36,30 +36,18 @@ std::string DLATexture::GetByteStream() {
     std::string byteString;
 
     for (const auto point : points) {
-        if (point.placed) {
-            float x = (point.height - 1.0f) / (maxHeight - 1.0f);
-            float mappedHeight = 30.0f + (255.0f - 10.0f) * x;
+        float x = (point.height - 1.0f) / (maxHeight - 1.0f);
+        float mappedHeight = 30.0f + (255.0f - 10.0f) * x;
 
-            if (mappedHeight > 255.0f) {
-                mappedHeight = 255.0f;
-            }
-
-            const char floored = static_cast<char>(floorf(mappedHeight));
-
-            byteString += floored;
-            byteString += floored;
-            byteString += floored;
-
-            // byteString += 0xFF;
-            // byteString += 0xFF;
-            // byteString += 0xFF;
+        if (mappedHeight > 255.0f) {
+            mappedHeight = 255.0f;
         }
-        else {
-            // set to red
-            byteString += 0xFF;
-            byteString += 0x01;
-            byteString += 0x01;
-        }
+
+        const char floored = static_cast<char>(floorf(mappedHeight));
+
+        byteString += floored;
+        byteString += floored;
+        byteString += floored;
     }
 
     return byteString;
