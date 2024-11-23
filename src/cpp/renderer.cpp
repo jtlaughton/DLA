@@ -83,6 +83,8 @@ int Renderer::Init(){
     shader->use();
     shader->setInt("texture1", 0);
 
+    start = std::chrono::high_resolution_clock::now();
+
     return 0;
 }
 
@@ -118,6 +120,29 @@ void Renderer::Draw() {
         // set texture data
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, generator.WIDTH, generator.HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else if (currentIteration != iterations) {
+        currentIteration++;
+        iterationsFinished = false;
+        auto stop = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+        timeStamps.push_back(duration);
+
+        generator.Reset();
+
+        start = std::chrono::high_resolution_clock::now();
+    }
+    else if (!printed) {
+        printed = true;
+
+        int sum = 0;
+        for (auto t: timeStamps) {
+            sum += t.count();
+        }
+
+        const double average = static_cast<double>(sum) / timeStamps.size();
+
+        std::cout << "Average after " << iterations << " iterations: " << average << std::endl;
     }
 
     //bind textures

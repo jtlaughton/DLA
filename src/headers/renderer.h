@@ -3,6 +3,7 @@
 #include "../headers/Shader.h"
 #include "../headers/dlatexture.h"
 
+#include <chrono>
 #include <fstream>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -29,16 +30,21 @@ public:
     void Update();
     void End() const;
 private:
+    int currentIteration = 0;
+    const int iterations = 100;
     DLATexture generator;
     GLFWwindow* window;
     bool running = false;
     bool iterationsFinished = false;
+    bool printed = false;
     void Draw();
     GLuint VBO;
     GLuint VAO;
     GLuint EBO;
     GLuint texture1;
     Shader* shader;
+    std::chrono::time_point<std::chrono::system_clock> start;
+    std::vector<std::chrono::milliseconds> timeStamps;
 };
 
 const GLfloat vertices[] = {

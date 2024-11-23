@@ -4,19 +4,32 @@
 
 #include "../headers/dlatexture.h"
 
-DLATexture::DLATexture(){
+DLATexture::DLATexture() {
     points = std::vector<bool>(WIDTH * HEIGHT, false);
 
-    const unsigned int x = WIDTH / 2;
-    const unsigned int y = HEIGHT / 2;
+    const unsigned int midX = WIDTH / 2;
+    const unsigned int midY = HEIGHT / 2;
 
-    points[x + y * WIDTH] = true;
+    points[midX + midY * WIDTH] = true;
 
     std::random_device rd;
     gen = std::mt19937(rd());
+    distribDir = std::uniform_int_distribution<unsigned>(0, 3);
     distribX = std::uniform_int_distribution<unsigned>(0, WIDTH - 1);
     distribY = std::uniform_int_distribution<unsigned>(0, HEIGHT - 1);
-    distribDir = std::uniform_int_distribution<unsigned>(0, 3);
+}
+
+void DLATexture::Reset() {
+    for (int i = 0; i < WIDTH * HEIGHT; i++) {
+        points[i] = false;
+    }
+
+    const unsigned int midX = WIDTH / 2;
+    const unsigned int midY = HEIGHT / 2;
+
+    points[midX + midY * WIDTH] = true;
+
+    currentIteration = 0;
 }
 
 std::string DLATexture::GetByteStream() {

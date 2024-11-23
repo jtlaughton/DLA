@@ -10,6 +10,8 @@ add_executable(DLA
         src/cpp/renderer.cpp
         src/headers/Shader.h
         src/cpp/Shader.cpp
+        src/headers/FastRandomHashMap.h
+        src/cpp/FastRandomHashMap.cpp
         src/cpp/dlatexture.cpp
         src/headers/dlatexture.h)
 
