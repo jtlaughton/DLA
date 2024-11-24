@@ -51,15 +51,15 @@ int Renderer::Init(){
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), static_cast<GLvoid *>(0));
     glEnableVertexAttribArray(0);
 
     // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), reinterpret_cast<GLvoid *>(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
 
     // texture coord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), reinterpret_cast<GLvoid *>(6 * sizeof(GLfloat)));
     glEnableVertexAttribArray(2);
 
     // setup texture
@@ -114,9 +114,9 @@ void Renderer::Draw() {
 
         start = std::chrono::high_resolution_clock::now();
         generator.RunSequence();
-        auto end = std::chrono::high_resolution_clock::now();
+        const auto end = std::chrono::high_resolution_clock::now();
 
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
         std::cout << duration.count() << "ms" << std::endl;
 
@@ -128,65 +128,6 @@ void Renderer::Draw() {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, generator.blurredWidth, generator.blurredHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
-
-    // // update texture
-    // if (!iterationsFinished) {
-    //     iterationsFinished = !generator.RunIteration();
-    //
-    //
-    // }
-    // else if (!scalingApplied){
-    //     scalingApplied = true;
-    //
-    //     generator.BiLinearInterpolationBy2();
-    //     generator.Blur();
-    //
-    //     generator.SharpUpscale();
-    //
-    //     generator.CombineBlurredAndSharp();
-    //
-    //     // read texture data
-    //     const std::string dataStr2 = generator.GetBlurredByteStream();
-    //     const GLchar* data2 = dataStr2.c_str();
-    //
-    //     // set texture data
-    //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, generator.blurredWidth, generator.blurredHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data2);
-    //     glGenerateMipmap(GL_TEXTURE_2D);
-    //
-    //     // for (int i = 0; i < 3; i++) {
-    //     //     generator.BiLinearInterpolationBy2();
-    //     //     generator.Blur();
-    //     // }
-    //
-    //     // for (int i = 0; i < 2; i++) {
-    //     //     generator.SharpUpscale();
-    //     // }
-    //
-    //
-    // }
-    // else if (currentIteration != iterations - 1) {
-    //     currentIteration++;
-    //     iterationsFinished = false;
-    //     auto stop = std::chrono::high_resolution_clock::now();
-    //     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-    //     timeStamps.push_back(duration);
-    //
-    //     generator.Reset();
-    //
-    //     start = std::chrono::high_resolution_clock::now();
-    // }
-    // else if (!printed) {
-    //     printed = true;
-    //
-    //     int sum = 0;
-    //     for (auto t: timeStamps) {
-    //         sum += t.count();
-    //     }
-    //
-    //     const double average = static_cast<double>(sum) / timeStamps.size();
-    //
-    //     std::cout << "Average after " << iterations << " iterations: " << average << std::endl;
-    // }
 
     //bind textures
     glActiveTexture(GL_TEXTURE0);

@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 #include <glad/glad.h>
-#include "../headers/FastRandomHashMap.h"
 
 struct ConnectedPoint {
     int id = -1;
@@ -19,7 +18,7 @@ struct ConnectedPoint {
     std::vector<int> downStream;
     bool startingHeight = false;
 
-    void Place(const int connection, const int newId, int newX, int newY, int position, std::vector<ConnectedPoint>& connectedPoints) {
+    void Place(const int connection, const int newId, const int newX, const int newY, const int position, std::vector<ConnectedPoint>& connectedPoints) {
         placed = true;
         height = 0.1f;
         weightedHeight = 1.0f - (1.0f / (1.0f + height));
@@ -34,28 +33,30 @@ struct ConnectedPoint {
         }
     }
 
-    void TryIncreaseHeight(std::vector<ConnectedPoint>& connectedPoints, float& heightAccumulator) {
-        if (indexConnection < 0) {
-            return;
+    void TryIncreaseHeight(std::vector<ConnectedPoint>& connectedPoints, float& heightAccumulator) const {
+        int currentIndex = indexConnection;
+        float currentHeight = height;
+
+        while (currentIndex >= 0) {
+            const float neighborHeight = connectedPoints[currentIndex].height;
+
+            const float newHeight = currentHeight + 0.2f;
+
+            if (newHeight <= neighborHeight) {
+                return;
+            }
+
+            connectedPoints[currentIndex].height = newHeight;
+            connectedPoints[currentIndex].weightedHeight = 1.0f - (1.0f / (1.0f + newHeight));
+            connectedPoints[currentIndex].startingHeight = false;
+
+            if (connectedPoints[indexConnection].height >= heightAccumulator) {
+                heightAccumulator = connectedPoints[indexConnection].height;
+            }
+
+            currentHeight = connectedPoints[currentIndex].height;
+            currentIndex = connectedPoints[currentIndex].indexConnection;
         }
-
-        float neighborHeight = connectedPoints[indexConnection].height;
-
-        float newHeight = height + 0.3f;
-
-        if (newHeight <= neighborHeight) {
-            return;
-        }
-
-        connectedPoints[indexConnection].height = newHeight;
-        connectedPoints[indexConnection].weightedHeight = 1.0f - (1.0f / (1.0f + newHeight ));
-        connectedPoints[indexConnection].startingHeight = false;
-
-        if (connectedPoints[indexConnection].height >= heightAccumulator) {
-            heightAccumulator = connectedPoints[indexConnection].height;
-        }
-
-        connectedPoints[indexConnection].TryIncreaseHeight(connectedPoints, heightAccumulator);
     }
 };
 
@@ -80,7 +81,7 @@ private:
     float maxHeight = 1.0f;
     unsigned int currentIteration = 0;
     unsigned int _randomMove(unsigned int& x, unsigned int& y);
-    int _nearbyAssigned(int x, int y);
+    int _nearbyAssigned(int x, int y) const;
     unsigned int maxIterations = 16;
     std::vector<ConnectedPoint> sharpPoints;
     std::vector<ConnectedPoint> blurredPoints;

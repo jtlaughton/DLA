@@ -26,7 +26,7 @@ public:
     FastRandomHashMap();
     FastRandomHashMap(const std::mt19937 &generator);
     void AddItem(Point value);
-    void RemoveItem(Point value);
+    void RemoveItem(const Point& value);
     Point ChooseRandomItem();
     void Clear();
 private:

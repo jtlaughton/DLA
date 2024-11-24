@@ -9,7 +9,7 @@
 #include <iostream>
 #include <cstring>
 
-inline void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+inline void framebuffer_size_callback(GLFWwindow* window, const int width, const int height) {
     glViewport(0, 0, width, height);
 }
 
@@ -48,7 +48,7 @@ private:
     std::vector<std::chrono::milliseconds> timeStamps;
 };
 
-const GLfloat vertices[] = {
+constexpr GLfloat vertices[] = {
     // Verts                //color             //tex coords
     1.0f,  1.0f, 0.0f,      1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
     1.0f, -1.0f, 0.0f,      0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right

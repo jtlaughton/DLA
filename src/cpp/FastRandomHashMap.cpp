@@ -17,7 +17,7 @@ void FastRandomHashMap::Clear() {
     map.clear();
 }
 
-void FastRandomHashMap::AddItem(Point value) {
+void FastRandomHashMap::AddItem(const Point value) {
     if (map.contains(value)) {
         return;
     }
@@ -26,14 +26,14 @@ void FastRandomHashMap::AddItem(Point value) {
     map[value] = items.size() - 1;
 }
 
-void FastRandomHashMap::RemoveItem(Point value) {
+void FastRandomHashMap::RemoveItem(const Point& value) {
     if (!map.contains(value)) {
         return;
     }
 
-    int index = map[value];
+    const int index = map[value];
     map.erase(value);
-    Point last = items.back();
+    const Point last = items.back();
     items.pop_back();
 
     if (index != items.size()) {

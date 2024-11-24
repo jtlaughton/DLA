@@ -10,7 +10,7 @@ DLATexture::DLATexture() {
     const unsigned int midX = width / 2;
     const unsigned int midY = height / 2;
 
-    int position = midX + midY * width;
+    const int position = midX + midY * width;
     sharpPoints[midX + midY * width].Place(-10, currentPlaced, midX, midY, position, sharpPoints);
     currentPlaced++;
 
@@ -29,7 +29,7 @@ void DLATexture::Reset() {
     const unsigned int midX = width / 2;
     const unsigned int midY = height / 2;
 
-    int position = midX + midY * width;
+    const int position = midX + midY * width;
     sharpPoints[midX + midY * width].Place(-10, currentPlaced, midX, midY, position, sharpPoints);
     currentPlaced++;
 
@@ -91,7 +91,7 @@ unsigned int DLATexture::_randomMove(unsigned int& x, unsigned int& y) {
     return x + y * width;
 }
 
-int DLATexture::_nearbyAssigned(const int x, const int y) {
+int DLATexture::_nearbyAssigned(const int x, const int y) const {
     const int left = (x - 1) + y * width;
     const int right = (x + 1) + y * width;
     const int up = x + (y - 1) * width;
@@ -134,7 +134,7 @@ bool DLATexture::RunIteration() {
         currentAssigned = _nearbyAssigned(randx, randy);
     }
 
-    int position = randx + randy * width;
+    const int position = randx + randy * width;
     sharpPoints[position].Place(currentAssigned, currentPlaced, randx, randy, position, sharpPoints);
     currentPlaced++;
     sharpPoints[position].TryIncreaseHeight(sharpPoints, maxHeight);
@@ -229,7 +229,7 @@ void DLATexture::BiLinearInterpolationBy2() {
                 placed = p1 || p2 || p3 || p4;
             }
 
-            ConnectedPoint point = ConnectedPoint();
+            auto point = ConnectedPoint();
             point.height = tempHeight1;
             point.weightedHeight = tempHeight;
             point.placed = placed;
@@ -306,7 +306,7 @@ void DLATexture::Blur() {
 }
 
 void DLATexture::SharpUpscale() {
-    int ratio = 2;
+    constexpr int ratio = 2;
 
     std::vector<ConnectedPoint> startingPoints;
     std::vector<ConnectedPoint> pointsToPlace;
@@ -316,9 +316,7 @@ void DLATexture::SharpUpscale() {
 
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
-            int position = x + y * static_cast<int>(width);
-
-            if (sharpPoints[position].placed) {
+            if (const int position = x + y * static_cast<int>(width); sharpPoints[position].placed) {
                 pointsToPlace.push_back(sharpPoints[position]);
 
                 if (sharpPoints[position].startingHeight) {
@@ -339,7 +337,7 @@ void DLATexture::SharpUpscale() {
             continue;
         }
 
-        ConnectedPoint next = sharpPoints[point.indexConnection];\
+        const ConnectedPoint next = sharpPoints[point.indexConnection];
 
         const int newXNext = ratio * next.x;
         const int newYNext = ratio * next.y;
@@ -354,7 +352,7 @@ void DLATexture::SharpUpscale() {
             incrementY = newYCurrent > newYNext ? -1 : 1;
         }
 
-        //float previous = -1;
+        //bool first = true;
 
         while ((newXCurrent != newXNext) || (newYCurrent != newYNext)) {
             const int position = newXCurrent + newYCurrent * newWidth;
@@ -366,42 +364,18 @@ void DLATexture::SharpUpscale() {
 
             newXCurrent += incrementX;
             newYCurrent += incrementY;
-
-            // if (previous == -1) {
-            //     float maxHeight = 1.0f;
-            //     for (const int i : newPoints[position].downStream) {
-            //         maxHeight = std::max(maxHeight, newPoints[i].height);
-            //     }
-            //
-            //     newPoints[position].height = maxHeight;
-            //     previous = newPoints[position].height;
-            // }
-            // else {
-            //     newPoints[position].height = previous + (1.0f - (1.0f / (1.0f + previous)));
-            //     previous = newPoints[position].height;
-            // }
         }
 
-        int nextPosition = newXNext + newYNext * newWidth;
-        // if (newPoints[nextPosition].placed) {
-        //     newPoints[nextPosition].TryIncreaseHeight(newPoints, maxHeight);
-        // }
-        // else {
-        //     newPoints[nextPosition].Place(-1, currentPlaced, newXNext, newYNext, nextPosition, newPoints);
-        //     newPoints[nextPosition].height = previous + (1.0f - (1.0f / (1.0f + previous)));
-        //     currentPlaced++;
-        // }
-
-        if (!newPoints[nextPosition].placed) {
+        if (const int nextPosition = newXNext + newYNext * newWidth; !newPoints[nextPosition].placed) {
             newPoints[nextPosition].Place(-1, currentPlaced, newXNext, newYNext, nextPosition, newPoints);
             currentPlaced++;
         }
     }
 
     for (const auto& point : startingPoints) {
-        int newXCurrent = ratio * point.x;
-        int newYCurrent = ratio * point.y;
-        int position = newXCurrent + newYCurrent * newWidth;
+        const int newXCurrent = ratio * point.x;
+        const int newYCurrent = ratio * point.y;
+        const int position = newXCurrent + newYCurrent * newWidth;
         newPoints[position].TryIncreaseHeight(newPoints, maxHeight);
     }
 
@@ -415,18 +389,11 @@ void DLATexture::CombineBlurredAndSharp() {
 
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
-            int position = x + y * static_cast<int>(width);
+            const int position = x + y * static_cast<int>(width);
+            const float height = sharpPoints[position].height + blurredPoints[position].height;
 
-            if (sharpPoints[position].placed) {
-                float height = sharpPoints[position].height + blurredPoints[position].height;
-
-                newBlurred[position].height = height;
-                newBlurred[position].weightedHeight = 1.0f - (1.0f / (1.0f + height));
-            }
-            else {
-                newBlurred[position].height = blurredPoints[position].height;
-                newBlurred[position].weightedHeight = blurredPoints[position].weightedHeight;
-            }
+            newBlurred[position].height = height;
+            newBlurred[position].weightedHeight = 1.0f - (1.0f / (1.0f + height));
 
             newBlurred[position].placed = sharpPoints[position].placed || blurredPoints[position].placed;
         }
@@ -457,7 +424,9 @@ void DLATexture::RunSequence() {
         Blur();
     }
 
-    Blur();
+    for (int i = 0; i < 2; i++) {
+        Blur();
+    }
 }
 
 void DLATexture::RunAllIterations() {
