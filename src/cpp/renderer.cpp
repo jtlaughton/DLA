@@ -73,7 +73,7 @@ int Renderer::Init(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // read texture data
-    const std::string dataStr = generator.GetByteStream();
+    const std::string dataStr = generator.GetSharpByteStream();
     const GLchar* data = dataStr.c_str();
 
     // set texture data
@@ -109,38 +109,63 @@ void Renderer::Draw() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // update texture
     if (!iterationsFinished) {
-        iterationsFinished = !generator.RunIteration();
+        iterationsFinished = true;
+
+        start = std::chrono::high_resolution_clock::now();
+        generator.RunSequence();
+        auto end = std::chrono::high_resolution_clock::now();
+
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+        std::cout << duration.count() << "ms" << std::endl;
 
         // read texture data
-        const std::string dataStr = generator.GetByteStream();
+        const std::string dataStr = generator.GetSharpByteStream();
         const GLchar* data = dataStr.c_str();
+
+        std::cout << generator.blurredWidth << std::endl;
 
         // set texture data
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, generator.width, generator.height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
-    else if (!scalingApplied){
-        scalingApplied = true;
 
-        // for (int i = 0; i < 3; i++) {
-        //     generator.BiLinearInterpolationBy2();
-        //     generator.Blur();
-        // }
-
-        for (int i = 0; i < 2; i++) {
-            generator.SharpUpscale();
-        }
-
-        // read texture data
-        const std::string dataStr = generator.GetByteStream();
-        const GLchar* data = dataStr.c_str();
-
-        // set texture data
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, generator.width, generator.height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
+    // // update texture
+    // if (!iterationsFinished) {
+    //     iterationsFinished = !generator.RunIteration();
+    //
+    //
+    // }
+    // else if (!scalingApplied){
+    //     scalingApplied = true;
+    //
+    //     generator.BiLinearInterpolationBy2();
+    //     generator.Blur();
+    //
+    //     generator.SharpUpscale();
+    //
+    //     generator.CombineBlurredAndSharp();
+    //
+    //     // read texture data
+    //     const std::string dataStr2 = generator.GetBlurredByteStream();
+    //     const GLchar* data2 = dataStr2.c_str();
+    //
+    //     // set texture data
+    //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, generator.blurredWidth, generator.blurredHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data2);
+    //     glGenerateMipmap(GL_TEXTURE_2D);
+    //
+    //     // for (int i = 0; i < 3; i++) {
+    //     //     generator.BiLinearInterpolationBy2();
+    //     //     generator.Blur();
+    //     // }
+    //
+    //     // for (int i = 0; i < 2; i++) {
+    //     //     generator.SharpUpscale();
+    //     // }
+    //
+    //
+    // }
     // else if (currentIteration != iterations - 1) {
     //     currentIteration++;
     //     iterationsFinished = false;

@@ -15,7 +15,7 @@ DLATexture::DLATexture() {
     currentPlaced++;
 
     std::random_device rd;
-    gen = std::mt19937(1234);
+    gen = std::mt19937(rd());
     distribDir = std::uniform_int_distribution<unsigned>(0, 3);
     distribX = std::uniform_int_distribution<unsigned>(0, width - 1);
     distribY = std::uniform_int_distribution<unsigned>(0, height - 1);
@@ -36,18 +36,21 @@ void DLATexture::Reset() {
     currentIteration = 0;
 }
 
-std::string DLATexture::GetByteStream() {
+std::string DLATexture::GetBlurredByteStream() const {
+    return GetByteStream(blurredPoints);
+}
+
+std::string DLATexture::GetSharpByteStream() const {
+    return GetByteStream(sharpPoints);
+}
+
+std::string DLATexture::GetByteStream(const std::vector<ConnectedPoint>& vector) const {
     std::string byteString;
 
-    for (const auto& point: sharpPoints) {
-        const float x = (point.height - 1.0f) / (maxHeight - 1.0f);
-        float mappedHeight = 30.0f + (255.0f - 10.0f) * x;
+    std::cout << maxHeight << std::endl;
 
-        if (mappedHeight > 255.0f) {
-            mappedHeight = 255.0f;
-        }
-
-        const char floored = static_cast<char>(floorf(mappedHeight));
+    for (const auto& point: vector) {
+        const char floored = static_cast<char>(floorf(point.weightedHeight * 255.0f));
 
         byteString += floored;
         byteString += floored;
@@ -142,12 +145,12 @@ bool DLATexture::RunIteration() {
 }
 
 void DLATexture::BiLinearInterpolationBy2() {
-    const int oldWidth = static_cast<int>(width);
-    const int oldHeight = static_cast<int>(height);
+    const int oldWidth = static_cast<int>(blurredWidth);
+    const int oldHeight = static_cast<int>(blurredHeight);
     const int newWidth = oldWidth * 2;
     const int newHeight = oldHeight * 2;
 
-    blurredPoints = std::vector<ConnectedPoint>(newWidth * newHeight, ConnectedPoint());
+    std::vector<ConnectedPoint> newPoints(newWidth * newHeight, ConnectedPoint());
 
     const float w_scale = static_cast<float>(oldWidth) / static_cast<float>(newWidth);
     const float h_scale = static_cast<float>(oldHeight) / static_cast<float>(newHeight);
@@ -162,70 +165,71 @@ void DLATexture::BiLinearInterpolationBy2() {
             const int y_floor = static_cast<int>(floorf(y));
             const int y_ceil = std::min(oldHeight - 1, static_cast<int>(ceilf(y)));
 
-            float height = 0.0f;
+            float tempHeight = 0.0f;
             bool placed = false;
 
             if (x_floor == x_ceil && y_floor == y_ceil) {
-                height = sharpPoints[x_floor + y_floor * width].height;
-                placed = sharpPoints[x_floor + y_floor * width].placed;
+                tempHeight = blurredPoints[x_floor + y_floor * oldWidth].weightedHeight;
+                placed = blurredPoints[x_floor + y_floor * oldWidth].placed;
             }
             else if (x_ceil == x_floor) {
-                const float h1 = sharpPoints[x_floor + y_floor * width].height;
-                const float h2 = sharpPoints[x_floor + y_ceil * width].height;
+                const float h1 = blurredPoints[x_floor + y_floor * oldWidth].weightedHeight;
+                const float h2 = blurredPoints[x_floor + y_ceil * oldWidth].weightedHeight;
 
-                height = h1 * (static_cast<float>(y_ceil) - y) + h2 * (y - static_cast<float>(y_floor));
+                tempHeight = h1 * (static_cast<float>(y_ceil) - y) + h2 * (y - static_cast<float>(y_floor));
 
-                const bool p1 = sharpPoints[x_floor + y_floor * width].placed;
-                const bool p2 = sharpPoints[x_floor + y_ceil * width].placed;
+                const bool p1 = blurredPoints[x_floor + y_floor * oldWidth].placed;
+                const bool p2 = blurredPoints[x_floor + y_ceil * oldWidth].placed;
 
                 placed = p1 || p2;
             }
             else if (y_ceil == y_floor) {
-                const float h1 = sharpPoints[x_floor + y_floor * width].height;
-                const float h2 = sharpPoints[x_ceil + y_floor * width].height;
+                const float h1 = blurredPoints[x_floor + y_floor * oldWidth].weightedHeight;
+                const float h2 = blurredPoints[x_ceil + y_floor * oldWidth].weightedHeight;
 
-                height = h1 * (static_cast<float>(x_ceil) - x) + h2 * (x - static_cast<float>(x_floor));
+                tempHeight = h1 * (static_cast<float>(x_ceil) - x) + h2 * (x - static_cast<float>(x_floor));
 
-                const bool p1 = sharpPoints[x_floor + y_floor * width].placed;
-                const bool p2 = sharpPoints[x_ceil + y_floor * width].placed;
+                const bool p1 = blurredPoints[x_floor + y_floor * oldWidth].placed;
+                const bool p2 = blurredPoints[x_ceil + y_floor * oldWidth].placed;
 
                 placed = p1 || p2;
             }
             else {
-                const float h1 = sharpPoints[x_floor + y_floor * width].height;
-                const float h2 = sharpPoints[x_ceil + y_floor * width].height;
-                const float h3 = sharpPoints[x_floor + y_ceil * width].height;
-                const float h4 = sharpPoints[x_ceil + y_ceil * width].height;
+                const float h1 = blurredPoints[x_floor + y_floor * oldWidth].weightedHeight;
+                const float h2 = blurredPoints[x_ceil + y_floor * oldWidth].weightedHeight;
+                const float h3 = blurredPoints[x_floor + y_ceil * oldWidth].weightedHeight;
+                const float h4 = blurredPoints[x_ceil + y_ceil * oldWidth].weightedHeight;
 
                 const float q1 = h1 * (static_cast<float>(x_ceil) - x) + h2 * (x - static_cast<float>(x_floor));
                 const float q2 = h3 * (static_cast<float>(x_ceil) - x) + h4 * (x - static_cast<float>(x_floor));
-                height = q1 * (static_cast<float>(y_ceil) - y) + q2 * (y - static_cast<float>(y_floor));
+                tempHeight = q1 * (static_cast<float>(y_ceil) - y) + q2 * (y - static_cast<float>(y_floor));
 
-                const bool p1 = sharpPoints[x_floor + y_floor * width].placed;
-                const bool p2 = sharpPoints[x_ceil + y_floor * width].placed;
-                const bool p3 = sharpPoints[x_floor + y_ceil * width].placed;
-                const bool p4 = sharpPoints[x_ceil + y_ceil * width].placed;
+                const bool p1 = blurredPoints[x_floor + y_floor * oldWidth].placed;
+                const bool p2 = blurredPoints[x_ceil + y_floor * oldWidth].placed;
+                const bool p3 = blurredPoints[x_floor + y_ceil * oldWidth].placed;
+                const bool p4 = blurredPoints[x_ceil + y_ceil * oldWidth].placed;
 
                 placed = p1 || p2 || p3 || p4;
             }
 
             ConnectedPoint point = ConnectedPoint();
-            point.height = height;
+            point.weightedHeight = tempHeight;
             point.placed = placed;
-            blurredPoints[i + j * newWidth] = point;
+            newPoints[i + j * newWidth] = point;
         }
     }
 
-    width = newWidth;
-    height = newHeight;
+    blurredWidth = newWidth;
+    blurredHeight = newHeight;
+    blurredPoints = newPoints;
 }
 
 void DLATexture::Blur() {
-    std::vector<ConnectedPoint> newPoints(width * height, ConnectedPoint());
+    std::vector<ConnectedPoint> newPoints(blurredWidth * blurredHeight, ConnectedPoint());
 
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) {
-            int staticWidth = static_cast<int>(width);
+    for (int x = 0; x < blurredWidth; x++) {
+        for (int y = 0; y < blurredHeight; y++) {
+            const int staticWidth = static_cast<int>(blurredWidth);
 
             const int position = x + y * staticWidth;
             const int upPosition = x + (y - 1) * staticWidth;
@@ -237,7 +241,7 @@ void DLATexture::Blur() {
             float downSample = 0.0f;
             float leftSample = 0.0f;
             float rightSample = 0.0f;
-            const float sample = blurredPoints[position].height * CENTER_SAMPLE;
+            const float sample = blurredPoints[position].weightedHeight * CENTER_SAMPLE;
 
             const bool placed = blurredPoints[position].placed;
             bool leftPlaced = false;
@@ -247,26 +251,26 @@ void DLATexture::Blur() {
 
             if (y != 0) {
                 upPlaced = blurredPoints[upPosition].placed;
-                upSample = blurredPoints[upPosition].height * UP_SAMPLE;
+                upSample = blurredPoints[upPosition].weightedHeight * UP_SAMPLE;
             }
 
-            if (y != height-1) {
+            if (y != blurredHeight-1) {
                 downPlaced = blurredPoints[downPosition].placed;
-                downSample = blurredPoints[downPosition].height * DOWN_SAMPLE;
+                downSample = blurredPoints[downPosition].weightedHeight * DOWN_SAMPLE;
             }
 
             if (x != 0) {
                 leftPlaced = blurredPoints[leftPosition].placed;
-                leftSample = blurredPoints[leftPosition].height * LEFT_SAMPLE;
+                leftSample = blurredPoints[leftPosition].weightedHeight * LEFT_SAMPLE;
             }
 
-            if (x != width-1) {
+            if (x != blurredWidth-1) {
                 rightPlaced = blurredPoints[rightPosition].placed;
-                rightSample = blurredPoints[rightPosition].height * RIGHT_SAMPLE;
+                rightSample = blurredPoints[rightPosition].weightedHeight * RIGHT_SAMPLE;
             }
 
             newPoints[position].placed = placed || leftPlaced || rightPlaced || upPlaced || downPlaced;
-            newPoints[position].height = sample + upSample + downSample + leftSample + rightSample;
+            newPoints[position].weightedHeight = sample + upSample + downSample + leftSample + rightSample;
         }
     }
 
@@ -378,4 +382,65 @@ void DLATexture::SharpUpscale() {
     height = newHeight;
 }
 
+void DLATexture::CombineBlurredAndSharp() {
+    std::vector<ConnectedPoint> newBlurred(width * height, ConnectedPoint());
+
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            int position = x + y * static_cast<int>(width);
+
+            if (sharpPoints[position].placed && blurredPoints[position].weightedHeight < 0.2f) {
+                newBlurred[position].weightedHeight = .75f * sharpPoints[position].weightedHeight + .25f * blurredPoints[position].weightedHeight;
+            }
+            else if (sharpPoints[position].placed && blurredPoints[position].weightedHeight > 0.7f) {
+                newBlurred[position].weightedHeight = .1f * sharpPoints[position].weightedHeight + .9f * blurredPoints[position].weightedHeight;
+            }
+            else if (sharpPoints[position].placed) {
+                newBlurred[position].weightedHeight = .5f * sharpPoints[position].weightedHeight + .5f * blurredPoints[position].weightedHeight;
+            }
+            else {
+                newBlurred[position].weightedHeight = blurredPoints[position].weightedHeight;
+            }
+
+            newBlurred[position].placed = sharpPoints[position].placed || blurredPoints[position].placed;
+        }
+    }
+
+    blurredPoints = newBlurred;
+}
+
+void DLATexture::RunSequence() {
+    RunAllIterations();
+
+    blurredPoints = std::vector<ConnectedPoint>(sharpPoints);
+
+    for (int i = 0; i < 4; i++) {
+        SharpUpscale();
+
+        distribX = std::uniform_int_distribution<unsigned>(0, width - 1);
+        distribY = std::uniform_int_distribution<unsigned>(0, height - 1);
+
+        currentIteration = 0;
+        maxIterations *= 4;
+
+        RunAllIterations();
+
+        BiLinearInterpolationBy2();
+        Blur();
+
+        CombineBlurredAndSharp();
+    }
+
+    BiLinearInterpolationBy2();
+
+    for (int x = 0; x < 5; x++) {
+        Blur();
+    }
+}
+
+void DLATexture::RunAllIterations() {
+    while (currentIteration != maxIterations) {
+        RunIteration();
+    }
+}
 

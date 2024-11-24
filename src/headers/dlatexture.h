@@ -12,6 +12,7 @@
 struct ConnectedPoint {
     int id = -1;
     int indexConnection = -1;
+    float weightedHeight = 0.0f;
     float height = 0.0f;
     bool placed = false;
     int x = 0, y = 0;
@@ -21,6 +22,7 @@ struct ConnectedPoint {
     void Place(const int connection, const int newId, int newX, int newY, int position, std::vector<ConnectedPoint>& connectedPoints) {
         placed = true;
         height = 1.0f;
+        weightedHeight = 1.0f - (1.0f / (1.0f + height));
         indexConnection = connection;
         id = newId;
         x = newX;
@@ -39,13 +41,14 @@ struct ConnectedPoint {
 
         float neighborHeight = connectedPoints[indexConnection].height;
 
-        float newHeight = height + (1.0f - (1.0f / (1.0f + height)));
+        float newHeight = height + 1.0f;
 
         if (newHeight <= neighborHeight) {
             return;
         }
 
         connectedPoints[indexConnection].height = newHeight;
+        connectedPoints[indexConnection].weightedHeight = 1.0f - (1.0f / (1.0f + newHeight));
         connectedPoints[indexConnection].startingHeight = false;
 
         if (connectedPoints[indexConnection].height >= heightAccumulator) {
@@ -58,28 +61,35 @@ struct ConnectedPoint {
 
 class DLATexture {
 public:
-    unsigned int width = 128;
-    unsigned int height = 128;
+    unsigned int blurredWidth = 8;
+    unsigned int blurredHeight = 8;
+    unsigned int width = 8;
+    unsigned int height = 8;
     DLATexture();
-    std::string GetByteStream();
+    std::string GetBlurredByteStream() const;
+    std::string GetSharpByteStream() const;
     bool RunIteration();
     void Reset();
     void BiLinearInterpolationBy2();
     void Blur();
     void SharpUpscale();
+    void CombineBlurredAndSharp();
+    void RunSequence();
 private:
     int currentPlaced = 0;
     float maxHeight = 1.0f;
     unsigned int currentIteration = 0;
     unsigned int _randomMove(unsigned int& x, unsigned int& y);
     int _nearbyAssigned(int x, int y);
-    const unsigned int maxIterations = 1000;
+    unsigned int maxIterations = 16;
     std::vector<ConnectedPoint> sharpPoints;
     std::vector<ConnectedPoint> blurredPoints;
     std::mt19937 gen;
     std::uniform_int_distribution<unsigned> distribX;
     std::uniform_int_distribution<unsigned> distribY;
     std::uniform_int_distribution<unsigned> distribDir;
+    std::string GetByteStream(const std::vector<ConnectedPoint>& vector) const;
+    void RunAllIterations();
 };
 
 constexpr float CENTER_SAMPLE = 1.0f / 3.0f;
