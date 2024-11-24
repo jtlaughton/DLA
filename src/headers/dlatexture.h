@@ -21,7 +21,7 @@ struct ConnectedPoint {
 
     void Place(const int connection, const int newId, int newX, int newY, int position, std::vector<ConnectedPoint>& connectedPoints) {
         placed = true;
-        height = 1.0f;
+        height = 0.1f;
         weightedHeight = 1.0f - (1.0f / (1.0f + height));
         indexConnection = connection;
         id = newId;
@@ -41,14 +41,14 @@ struct ConnectedPoint {
 
         float neighborHeight = connectedPoints[indexConnection].height;
 
-        float newHeight = height + 1.0f;
+        float newHeight = height + 0.3f;
 
         if (newHeight <= neighborHeight) {
             return;
         }
 
         connectedPoints[indexConnection].height = newHeight;
-        connectedPoints[indexConnection].weightedHeight = 1.0f - (1.0f / (1.0f + newHeight));
+        connectedPoints[indexConnection].weightedHeight = 1.0f - (1.0f / (1.0f + newHeight ));
         connectedPoints[indexConnection].startingHeight = false;
 
         if (connectedPoints[indexConnection].height >= heightAccumulator) {

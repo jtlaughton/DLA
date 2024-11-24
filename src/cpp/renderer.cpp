@@ -121,13 +121,11 @@ void Renderer::Draw() {
         std::cout << duration.count() << "ms" << std::endl;
 
         // read texture data
-        const std::string dataStr = generator.GetSharpByteStream();
+        const std::string dataStr = generator.GetBlurredByteStream();
         const GLchar* data = dataStr.c_str();
 
-        std::cout << generator.blurredWidth << std::endl;
-
         // set texture data
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, generator.width, generator.height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, generator.blurredWidth, generator.blurredHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
