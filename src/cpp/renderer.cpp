@@ -124,9 +124,13 @@ void Renderer::Draw() {
     else if (!scalingApplied){
         scalingApplied = true;
 
-        for (int i = 0; i < 3; i++) {
-            generator.BiLinearInterpolationBy2();
-            generator.Blur();
+        // for (int i = 0; i < 3; i++) {
+        //     generator.BiLinearInterpolationBy2();
+        //     generator.Blur();
+        // }
+
+        for (int i = 0; i < 2; i++) {
+            generator.SharpUpscale();
         }
 
         // read texture data
